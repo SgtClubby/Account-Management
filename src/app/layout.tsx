@@ -1,15 +1,15 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import Providers from './Providers'
+import "./globals.css";
+import type { Metadata } from "next";
+import Providers from "./Providers";
 export const metadata: Metadata = {
-  title: 'Acc Dict',
-  description: 'Test Dict for accounts',
-}
+  title: "Account Management",
+  description: "",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <Providers>
@@ -17,5 +17,5 @@ export default function RootLayout({
         <body>{children}</body>
       </html>
     </Providers>
-  )
+  );
 }
