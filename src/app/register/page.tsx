@@ -2,7 +2,7 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 
 export default function LoginForm() {
   const { data: session, status } = useSession();
@@ -20,12 +20,63 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [alert, setAlert] = useState("");
 
+  const [satisfiesLG, setsatisfiesLG] = useState(false);
+  const [satisfiesLC, setsatisfiesLC] = useState(false);
+  const [satisfiesUP, setsatisfiesUP] = useState(false);
+  const [satisfiesDI, setsatisfiesDI] = useState(false);
+  const [satisfiesSC, setsatisfiesSC] = useState(false);
+
+  const [satisfiesAll, setsatisfiesAll] = useState(false);
+
   const callbackUrl = "/accounts";
+
+  useEffect(() => {
+    function validatePassword(password = "") {
+      // Require at least 8 characters
+      setsatisfiesLG(password.length >= 8);
+
+      // Require at least one lower case letter
+      setsatisfiesLC(/[a-z]/.test(password));
+
+      // Require at least one upper case letter
+      setsatisfiesUP(/[A-Z]/.test(password));
+
+      // Require at least one digit
+      setsatisfiesDI(/[0-9]/.test(password));
+
+      // Require at least one special character
+      var specialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+      setsatisfiesSC(specialChars.test(password));
+    }
+
+    if (
+      satisfiesLG &&
+      satisfiesLC &&
+      satisfiesUP &&
+      satisfiesDI &&
+      satisfiesSC
+    ) {
+      setsatisfiesAll(true);
+    } else {
+      setsatisfiesAll(false);
+    }
+
+    validatePassword(formValues.password);
+  }, [formValues.password]);
 
   const onSubmit = async (e: React.FormEvent) => {
     setError("");
     e.preventDefault();
     try {
+      if (!satisfiesAll) {
+        setError("Password does not meet requirements!");
+        setTimeout(() => {
+          setError("");
+        }, 5000);
+
+        return;
+      }
+
       setLoading(true);
       setFormValues({ username: "", email: "", password: "" });
 
@@ -105,7 +156,7 @@ export default function LoginForm() {
             className={`${input_style}`}
           />
         </div>
-        <div className="mb-6">
+        <div className={`${formValues.password.length == 0 ? "mb-6" : "mb-2"}`}>
           <input
             required
             type="password"
@@ -115,6 +166,40 @@ export default function LoginForm() {
             placeholder="Password"
             className={`${input_style}`}
           />
+        </div>
+        {/* Make a password requirenent list using the states*/}
+        <div
+          className={`${
+            formValues.password.length == 0 ? "hidden mb-6" : "block mb-6"
+          }`}
+        >
+          <ul className="list-disc list-inside">
+            <li
+              className={`${satisfiesLG ? "text-green-500" : "text-red-500"}`}
+            >
+              At least 8 characters
+            </li>
+            <li
+              className={`${satisfiesLC ? "text-green-500" : "text-red-500"}`}
+            >
+              At least one lower case letter
+            </li>
+            <li
+              className={`${satisfiesUP ? "text-green-500" : "text-red-500"}`}
+            >
+              At least one upper case letter
+            </li>
+            <li
+              className={`${satisfiesDI ? "text-green-500" : "text-red-500"}`}
+            >
+              At least one digit
+            </li>
+            <li
+              className={`${satisfiesSC ? "text-green-500" : "text-red-500"}`}
+            >
+              At least one special character
+            </li>
+          </ul>
         </div>
         <button
           type="submit"
