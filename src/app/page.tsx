@@ -1,12 +1,22 @@
 "use client"
-import { useRef } from 
+import { redirect } from 'next/navigation';
+import { useSession} from "next-auth/react"
+
+
+type Account = {
+  id: string,
+  name: string
+  username: string,
+  password: string,
+  usedFor: string
+}
 
 export default function Home() {
-  return (
-    <main className="">
-      <input type="text" ref="" placeholder="Search" />
+  const { data: session, status } = useSession()
 
-
-    </main>
-  )
+  if (status === "authenticated") {
+    redirect("/accounts")
+  } else {
+    redirect("/login")
+  }
 }
