@@ -74,7 +74,14 @@ export default function TwoFactorModal({
 
     if (data.verified) {
       setVerified(true);
-      setError({ show: true, message: "Verified!", type: true });
+      setError({
+        show: true,
+        message: "Success! You are now protected!",
+        type: true,
+      });
+      return;
+    } else {
+      setError({ show: true, message: "Invalid code", type: false });
       return;
     }
   }
@@ -117,8 +124,11 @@ export default function TwoFactorModal({
                 <div className="space-y-2 p-4 mt-3 text-[15.5px] leading-relaxed text-gray-500">
                   {!verified ? (
                     <>
+                      <h1 className="text-gray-200 text-lg">
+                        Scan the QR code below with your authenticator app
+                      </h1>
                       <img
-                        className="mb-5"
+                        className="mb-5 mx-auto h-56 aspect-square"
                         src={generatedTwoFactorCode.qr_code}
                       />
                       <p className="text-gray-200 text-sm">Secret:</p>
@@ -146,26 +156,21 @@ export default function TwoFactorModal({
                   )}
                 </div>
                 <div className="flex items-center gap-3 p-4 mt-5 border-t">
-                  {verified ? (
-                    <button
-                      className="px-6 py-2 text-white bg-blue-500 rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
-                      onClick={() => showTwoFactorModal({ show: false })}
-                    >
-                      Close
-                    </button>
-                  ) : (
+                  {!verified ? (
                     <button
                       className="px-6 py-2 text-white bg-blue-500 rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
                       onClick={() => checkCode()}
                     >
                       Check Code
                     </button>
+                  ) : (
+                    <></>
                   )}
                   <button
                     className="px-6 py-2 text-gray-200 border rounded-md outline-none dark:text-textDarkmode ring-offset-2 ring-blue-400 focus:ring-2"
                     onClick={() => showTwoFactorModal({ show: false })}
                   >
-                    Cancel
+                    {verified ? "Close" : "Cancel"}
                   </button>
                 </div>
               </div>
