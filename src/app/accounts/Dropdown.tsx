@@ -9,8 +9,10 @@ function classNames(...classes: any[]) {
 
 export default function Dropdown({
   showTwoFactorModal,
+  showPasswordResetModal,
 }: {
   showTwoFactorModal: Function;
+  showPasswordResetModal: Function;
 }) {
   return (
     <Menu as="div" className="relative inline-block text-left">
@@ -54,7 +56,7 @@ export default function Dropdown({
               {({ active }) => (
                 <button
                   onClick={() => {
-                    signOut();
+                    showPasswordResetModal({ show: true });
                   }}
                   className={classNames(
                     active ? "bg-gray-100 text-gray-900" : "text-gray-700",
@@ -72,7 +74,7 @@ export default function Dropdown({
                     signOut();
                   }}
                   className={classNames(
-                    active ? "bg-gray-100 text-gray-900" : "text-gray-700",
+                    active ? "bg-gray-100 text-red-600" : "text-red-500",
                     "block w-full px-4 py-2 text-left text-sm"
                   )}
                 >
