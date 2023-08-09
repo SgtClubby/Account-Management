@@ -73,3 +73,26 @@ export async function POST(request: Request, response: Response) {
       return console.log(e);
     });
 }
+
+export async function DELETE(request: Request, response: Response) {
+  const session = (await getServerSession(authOptions)) as SessionWithId;
+  if (!session) {
+    return NextResponse.json({ message: "Unauthenicated" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  console.log(body);
+
+  const username = body.username;
+
+  await Account.deleteOne({ username });
+
+  return NextResponse.json(
+    {
+      message: "Success!",
+      ok: true,
+      status: 200,
+    },
+    { status: 200 }
+  );
+}
