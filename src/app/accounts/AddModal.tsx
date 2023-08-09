@@ -18,6 +18,7 @@ export default function AddModal({
   const [selectedUsername, setSelectedUsermame] = useState("");
   const [selectedPassword, setSelectedPassword] = useState("");
   const [selectedUsedFor, setSelectedUsedFor] = useState("");
+  const [selectedMasterPassword, setSelectedMasterPassword] = useState("");
 
   const [error, setError] = useState({ show: false, message: "" });
 
@@ -32,7 +33,7 @@ export default function AddModal({
         username: selectedUsername,
         encPassword: AES.encrypt(
           selectedPassword,
-          session?.user?.email as string
+          selectedMasterPassword
         ).toString(),
         usedFor: selectedUsedFor,
       }),
@@ -47,6 +48,7 @@ export default function AddModal({
       setSelectedUsermame("");
       setSelectedPassword("");
       setSelectedUsedFor("");
+      setSelectedMasterPassword("");
       setError({ show: true, message: "Success!" });
       showAddModal({ show: false });
       fetchData();
@@ -134,6 +136,24 @@ export default function AddModal({
                     onChange={(e) => setSelectedUsedFor(e.target.value)}
                     type="text"
                   />
+                  <div className="mt-5">
+                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode mt-10">
+                      <span>Master Password</span>
+                      <span className="text-red-500">*</span>
+                      <br />
+                      <span>
+                        (Can be anything, BUT MAKE SURE TO REMEMBER IT!)
+                      </span>
+                    </label>
+                    <input
+                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                      placeholder="Master Password"
+                      onChange={(e) =>
+                        setSelectedMasterPassword(e.target.value)
+                      }
+                      type="password"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 mt-5 border-t">
                   <button
