@@ -15,13 +15,11 @@ export const authOptions: NextAuthOptions = {
         "2fa-key": { label: "2FA Key" },
       },
       async authorize(credentials, req) {
+        console.log(credentials);
+
         const dbuser = await UserDB.findOne({
           username: credentials?.username,
         });
-
-        if (!dbuser) {
-          return null;
-        }
 
         if (dbuser.twoFactorAuth) {
           const verified = speakeasy.totp.verify({
@@ -39,6 +37,8 @@ export const authOptions: NextAuthOptions = {
           credentials?.password as string,
           dbuser?.password
         );
+
+        console.log(isValid);
 
         if (isValid) {
           return dbuser;
