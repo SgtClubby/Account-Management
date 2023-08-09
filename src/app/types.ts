@@ -1,5 +1,11 @@
 import { Session } from "next-auth";
 
+type Body = {
+  email: string;
+  username: string;
+  password: string;
+};
+
 export type Account = {
   id: string;
   name: string;
