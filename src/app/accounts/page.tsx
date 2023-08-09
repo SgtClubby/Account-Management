@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { redirect } from "next/navigation";
 import Dropdown from "./Dropdown";
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { AES, enc } from "crypto-js";
 import AddModal from "./AddModal";
 import TwoFactorModal from "./TwoFactorModal";
@@ -11,7 +11,7 @@ import SyncIcon from "@mui/icons-material/Sync";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { Account, SessionWithId } from "../types";
 import AccountCard from "./AccountCard";
-import { Session } from "inspector";
+import PasswordResetModal from "./ResetPasswordModal";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -21,61 +21,55 @@ export default function Home() {
   }
 
   const [accounts, setAccounts] = useState<Account[]>();
+  const [accountsCache, setAccountsCache] = useState<Account[]>();
   const [search, setSearch] = useState<string>("");
 
   function decrypt(string: string, key: string) {
     const decrypted = AES.decrypt(string, key).toString(enc.Utf8);
-    return decrypted;
+    return decrypted as string;
   }
 
   async function fetchData() {
-    setAccounts(undefined);
+    setAccountsCache(undefined);
     const res = await fetch("/api/accounts", {
       method: "GET",
     });
     const data = await res.json();
 
-    data.accounts?.forEach((account: Account) => {
-      const decrypted = decrypt(
-        account.password,
-        session?.user?.email as string
-      );
-      account.password = decrypted;
-    });
-
+    setAccountsCache(data.accounts);
     setAccounts(data.accounts);
   }
 
+  const [formValues, setFormValues] = useState({
+    masterPassword: "",
+    decrypted: false,
+  });
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
+
   useEffect(() => {
-    async function fetchInitData() {
-      const res = await fetch("/api/accounts", {
-        method: "GET",
-      });
-      const data = await res.json();
+    if (session) fetchData();
+  }, [session]);
 
-      data.accounts?.forEach((account: Account) => {
-        const decrypted = decrypt(
-          account.password,
-          session?.user?.email as string
-        );
-        account.password = decrypted;
-      });
-
-      setAccounts(data.accounts);
-    }
-
+  useEffect(() => {
     if (search) {
-      const filteredAccounts = accounts?.filter((account) => {
+      setAccounts(accountsCache);
+      const filteredAccounts = accountsCache?.filter((account) => {
         return account.name.toLowerCase().includes(search.toLowerCase());
       });
       setAccounts(filteredAccounts);
-    } else {
-      if (session) fetchInitData();
     }
   }, [search]);
 
   const [addModal, showAddModal] = useState({ show: false });
+  const [passwordResetModal, showPasswordResetModal] = useState({
+    show: false,
+  });
   const [twoFactorModal, showTwoFactorModal] = useState({ show: false });
+  const [error, setError] = useState({ show: false, message: "" });
 
   return (
     <section className="py-28">
@@ -90,6 +84,24 @@ export default function Home() {
         showTwoFactorModal={showTwoFactorModal}
         session={session as SessionWithId}
       />
+      <PasswordResetModal
+        passwordResetModal={passwordResetModal}
+        showPasswordResetModal={showPasswordResetModal}
+        session={session as SessionWithId}
+      />
+      {error.show && (
+        <div className="fixed z-[100] bg-green-100 border border-green-400 text-greeb-700 px-4 py-3 rounded w-32 right-0 left-0 m-auto">
+          <span className="block sm:inline">{error.message}</span>
+        </div>
+      )}
+      {/* <button
+        className="fixed z-[100] bottom-5 right-5 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        onClick={() => {
+          setError({ show: true, message: "Test!" });
+        }}
+      >
+        Morrafookkaa
+      </button> */}
       <div className="max-w-screen-lg mx-auto px-4 md:px-8">
         <div className="w-full">
           <h1 className="text-gray-200 mb-5 text-2xl font-extrabold sm:text-3xl">
@@ -103,23 +115,28 @@ export default function Home() {
               placeholder="Search"
             />
             <AddBoxIcon
+              fontSize="large"
+              className="text-gray-200 ml-3 h-10 w-10 hover:text-gray-400 cursor-pointer"
               onClick={() => showAddModal({ show: true })}
-              className="items-center ml-2 h-10 w-10  text-gray-200 hover:text-gray-400 cursor-pointer"
               titleAccess="Add Account"
             />
 
             <SyncIcon
-              className="text-gray-200 ml-2 items-center h-10 w-10 hover:text-gray-400 cursor-pointer"
+              fontSize="large"
+              className="text-gray-200 ml-1 mt-[2px] hover:text-gray-400 cursor-pointer"
               onClick={() => fetchData()}
               titleAccess="Refresh list"
             />
 
             <div className="ml-auto items-center">
-              <Dropdown showTwoFactorModal={showTwoFactorModal} />
+              <Dropdown
+                showTwoFactorModal={showTwoFactorModal}
+                showPasswordResetModal={showPasswordResetModal}
+              />
             </div>
           </div>
         </div>
-        <ul className="mt-8 divide-y space-y-3">
+        <ul className="mt-8 divide-y space-y-3 w-full">
           {!accounts && (
             <div className="flex items-center justify-center">
               <svg
@@ -147,19 +164,28 @@ export default function Home() {
           )}
           {accounts && accounts.length === 0 && (
             <div className="flex items-center justify-center">
-              <span className="text-gray-200">No accounts found.</span>
+              <span className="text-gray-200 text-2xl">No accounts found.</span>
             </div>
           )}
-          {accounts &&
-            accounts?.map((account, idx) => (
-              <div key={idx}>
-                <AccountCard
-                  key={idx + account.password}
-                  idx={idx}
-                  account={account}
-                />
-              </div>
-            ))}
+          <div className="flex max-h-full flex-col w-full items-center overflow-auto">
+            {accounts &&
+              accounts?.map((account, idx) => (
+                <>
+                  <div className="w-full h-px bg-gray-700 mb-3"></div>
+                  <AccountCard
+                    key={idx + account.password}
+                    idx={idx}
+                    setError={setError}
+                    account={account}
+                    decrypt={decrypt}
+                    handleChange={handleChange}
+                    formValues={formValues}
+                    setFormValues={setFormValues}
+                    fetchData={fetchData}
+                  />
+                </>
+              ))}
+          </div>
         </ul>
       </div>
     </section>
