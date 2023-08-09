@@ -78,7 +78,7 @@ export default function LoginForm() {
       }
 
       setLoading(true);
-      setFormValues({ username: "", email: "", password: "" });
+      // setFormValues({ username: "", email: "", password: "" });
 
       const register = await fetch("/api/register", {
         method: "POST",
@@ -107,6 +107,7 @@ export default function LoginForm() {
         }, 2000);
       } else {
         setError(registerJson?.message);
+        setFormValues({ username: "", email: "", password: "" });
       }
     } catch (error: any) {
       setLoading(false);
