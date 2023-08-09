@@ -2,11 +2,17 @@ import { NextResponse } from "next/server";
 import { User } from "../../../../mongo/mongo";
 import { hash } from "bcrypt";
 
-export async function POST(request: Request, response: Response) {
-  const body = await request.json();
+type Body = {
+  email: string;
+  username: string;
+  password: string;
+};
 
-  const email = body.email;
-  const un = body.username;
+export async function POST(request: Request, response: Response) {
+  const body: Body = await request.json();
+
+  const email = body.email.trim();
+  const un = body.username.trim();
   const pw = body.password;
 
   if (!un || !pw || !email) {
