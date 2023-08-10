@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
@@ -14,6 +15,8 @@ export default function Dropdown({
   showTwoFactorModal: Function;
   showPasswordResetModal: Function;
 }) {
+  const router = useRouter();
+
   return (
     <Menu as="div" className="relative inline-block text-left">
       <div>
@@ -55,15 +58,13 @@ export default function Dropdown({
             <Menu.Item>
               {({ active }) => (
                 <button
-                  onClick={() => {
-                    showPasswordResetModal({ show: true });
-                  }}
+                  onClick={() => router.push("/settings")}
                   className={classNames(
                     active ? "bg-gray-100 text-gray-900" : "text-gray-700",
                     "block w-full px-4 py-2 text-left text-sm"
                   )}
                 >
-                  Change Password
+                  Manage Account
                 </button>
               )}
             </Menu.Item>

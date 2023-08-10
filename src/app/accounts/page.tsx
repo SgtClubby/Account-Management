@@ -12,6 +12,7 @@ import AddBoxIcon from "@mui/icons-material/AddBox";
 import { Account, SessionWithId } from "../types";
 import AccountCard from "./AccountCard";
 import PasswordResetModal from "./ResetPasswordModal";
+import { decrypt } from "lib/functions";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -24,11 +25,6 @@ export default function Home() {
   const [accountsCache, setAccountsCache] = useState<Account[]>();
   const [search, setSearch] = useState<string>("");
 
-  function decrypt(string: string, key: string) {
-    const decrypted = AES.decrypt(string, key).toString(enc.Utf8);
-    return decrypted as string;
-  }
-
   async function fetchData() {
     setAccountsCache(undefined);
     const res = await fetch("/api/accounts", {
@@ -39,6 +35,65 @@ export default function Home() {
     setAccountsCache(data.accounts);
     setAccounts(data.accounts);
   }
+
+  const [emailVerified, setEmailVerified] = useState<string | null>(null);
+
+  async function fetchChecks() {
+    const res = await fetch("/api/checks", {
+      method: "GET",
+    });
+    const data = await res.json();
+    if (!data?.user?.email?.emailVerified) {
+      setEmailVerified(data?.user?.email?.details?.message);
+    } else {
+      setEmailVerified(null);
+    }
+  }
+
+  async function resendVerification() {
+    const res = await fetch(`/api/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        // @ts-ignore
+        id: session?.user?.id,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.ok) {
+      setError({
+        show: true,
+        message: "Email verification sent!",
+      });
+      setTimeout(() => {
+        setError({ show: false, message: "" });
+      }, 10000);
+    } else {
+      setError({
+        show: true,
+        message: data.message,
+      });
+      setTimeout(() => {
+        setError({ show: false, message: "" });
+      }, 10000);
+    }
+
+    let interval = setInterval(async () => {
+      fetchChecks();
+
+      if (!emailVerified) {
+        clearInterval(interval);
+      }
+    }, 10000);
+  }
+
+  useEffect(() => {
+    fetchChecks();
+  }, []);
 
   const [formValues, setFormValues] = useState({
     masterPassword: "",
@@ -71,6 +126,8 @@ export default function Home() {
   const [twoFactorModal, showTwoFactorModal] = useState({ show: false });
   const [error, setError] = useState({ show: false, message: "" });
 
+  const [syncing, setSyncing] = useState<NodeJS.Timeout | Boolean>(false);
+
   return (
     <section className="py-28">
       <AddModal
@@ -90,8 +147,19 @@ export default function Home() {
         session={session as SessionWithId}
       />
       {error.show && (
-        <div className="fixed z-[100] bg-green-100 border border-green-400 text-greeb-700 px-4 py-3 rounded w-32 right-0 left-0 m-auto">
+        <div className="fixed z-[100] bg-green-100 border border-green-400 text-greeb-700 px-4 py-3 rounded w-fit max-w-64 right-0 left-0 m-auto">
           <span className="block sm:inline">{error.message}</span>
+        </div>
+      )}
+      {emailVerified && (
+        <div className="fixed flex flex-col z-[100] bg-red-100 border border-red-400 text-sm md:text-md text-gray-800 px-4 py-3 rounded w-80 md:w-fit right-0 left-0 top-5 m-auto">
+          <span className="block sm:inline">{emailVerified}</span>
+          <button
+            className="text-blue-500 hover:text-blue-600"
+            onClick={() => resendVerification()}
+          >
+            Click here to resend verification email
+          </button>
         </div>
       )}
       {/* <button

@@ -161,7 +161,7 @@ function AccountCard({
                 <ContentCopyIcon
                   className="text-gray-300 cursor-pointer"
                   onClick={() => {
-                    navigator.clipboard.writeText(account.password);
+                    navigator.clipboard.writeText(decryptedPassword);
                   }}
                 />
                 {/* hide button clears interval*/}

@@ -1,6 +1,6 @@
 import { Session } from "next-auth";
 
-type Body = {
+export type Body = {
   email: string;
   username: string;
   password: string;

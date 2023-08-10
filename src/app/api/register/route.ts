@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { User } from "../../../../mongo/mongo";
+import { EmailCheck, User } from "../../../../mongo/mongo";
 import { hash } from "bcrypt";
-
-type Body = {
-  email: string;
-  username: string;
-  password: string;
-};
+import { randomBytes } from "crypto";
+import AccountManagementVerifyEmail from "./verifyEmail";
+import type { Body, User as UserType } from "../../types";
+import { Resend } from "resend";
 
 export async function POST(request: Request, response: Response) {
   const body: Body = await request.json();
@@ -30,13 +28,15 @@ export async function POST(request: Request, response: Response) {
     );
   }
 
-  const emailCheck = await User.findOne({ email });
-  if (emailCheck) {
+  const userEmailCheck = await User.findOne({ email });
+  if (userEmailCheck) {
     return NextResponse.json(
       { message: "Email already in use.", ok: false, status: 400 },
       { status: 400 }
     );
   }
+
+  const token = randomBytes(16).toString("hex");
 
   const newUser = new User({
     username: un as string,
@@ -44,21 +44,42 @@ export async function POST(request: Request, response: Response) {
     password: await hash(pw, 10),
     twoFactorAuth: false,
     twoFactorAuthSecret: null,
+    emailVerified: false,
   });
 
-  return newUser
-    .save()
-    .then(() => {
-      return NextResponse.json(
-        {
-          message: "Success! You will be forwarded soon!",
-          ok: true,
-          status: 200,
-        },
-        { status: 200 }
-      );
-    })
-    .catch((e: any) => {
-      return console.log(e);
-    });
+  const id = newUser._id.toHexString() as string;
+
+  const emailCheck = new EmailCheck({
+    id,
+    token,
+  });
+
+  await emailCheck.save();
+  await newUser.save();
+
+  const resend = new Resend(process.env.RESEND_KEY as string);
+
+  const user = {
+    token,
+    id,
+    username: un,
+    baseUrl: process.env.NEXTAUTH_URL as string,
+  };
+
+  console.log("LOG: Tried to send email to " + email);
+  resend.sendEmail({
+    from: "noreply@verify.metrix.pw",
+    to: email,
+    subject: "Verify your email",
+    react: AccountManagementVerifyEmail({ user }),
+  });
+
+  return NextResponse.json(
+    {
+      message: "Success! You will be forwarded soon!",
+      ok: true,
+      status: 200,
+    },
+    { status: 200 }
+  );
 }

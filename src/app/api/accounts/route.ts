@@ -81,7 +81,6 @@ export async function DELETE(request: Request, response: Response) {
   }
 
   const body = await request.json();
-  console.log(body);
 
   const username = body.username;
 

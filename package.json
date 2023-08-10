@@ -16,6 +16,9 @@
     "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.3",
     "@nextui-org/react": "^2.0.5",
+    "@react-email/button": "0.0.10",
+    "@react-email/components": "^0.0.7",
+    "@react-email/html": "0.0.4",
     "@types/node": "20.4.8",
     "@types/react": "18.2.18",
     "@types/react-dom": "18.2.7",
@@ -30,6 +33,8 @@
     "qrcode": "^1.5.3",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-email": "1.9.4",
+    "resend": "^0.17.2",
     "speakeasy": "^2.0.0",
     "tailwindcss": "3.3.3",
     "typescript": "5.1.6"

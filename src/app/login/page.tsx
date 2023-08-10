@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn, useSession } from "next-auth/react";
+import Image from "next/image";
 import {
   useSearchParams,
   useRouter,
@@ -62,17 +63,23 @@ export default function LoginForm() {
   };
 
   const input_style =
-    "mx-auto form-control block w-full px-4 py-3 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none";
+    "mx-auto form-control block px-4 py-3 text-sm w-full font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none";
 
   return (
-    <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
-      <div className="w-72 md:w-96">
-        <img src="/jett.png" className="w-56 sm:w-96 mx-auto mb-6" />
-        <h1 className="text-gray-200 text-2xl font-extrabold text-center mb-5 sm:text-3xl">
-          Account Management
-        </h1>
+    <div className="lg:fixed lg:left-[50%] lg:top-[50%] lg:translate-x-[-50%] lg:translate-y-[-50%] flex flex-col items-center justify-center h-screen w-full">
+      <div className="w-72 md:w-96 justify-center items-center">
+        <div className="flex flex-col small:flex-row small:items-center small:justify-center">
+          <img
+            alt="logo"
+            src="/metrixrnd.png"
+            className="mx-auto small:mx-0 small:mr-3 mb-6 w-full hidden md:block small:w-20"
+          />
+          <h1 className="text-gray-200 text-2xl font-extrabold text-center mb-5 sm:text-1xl">
+            Account Management
+          </h1>
+        </div>
       </div>
-      <form className="w-72 md:w-96" onSubmit={onSubmit}>
+      <form autoComplete="off" className="w-72 md:w-96" onSubmit={onSubmit}>
         {error && (
           <p className="text-center bg-red-300 py-4 mb-6 rounded">{error}</p>
         )}
@@ -85,6 +92,7 @@ export default function LoginForm() {
             onChange={handleChange}
             placeholder="Username"
             className={`${input_style}`}
+            autoComplete="username"
           />
         </div>
         <div className="mb-6">
@@ -96,6 +104,8 @@ export default function LoginForm() {
             onChange={handleChange}
             placeholder="Password"
             className={`${input_style}`}
+            autoComplete="off"
+            autoCorrect="off"
           />
         </div>
         <span>
@@ -111,12 +121,14 @@ export default function LoginForm() {
             onChange={handleChange}
             placeholder="Two Factor Code"
             className={`${input_style}`}
+            autoComplete="off"
+            autoCorrect="off"
           />
         </div>
         <button
           type="submit"
           // style={{ backgroundColor: `${loading ? "#ccc" : "#3446eb"}` }}
-          className="inline-block px-7 py-3 bg-blue-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
+          className="inline-block px-7 py-3 bg-metrix-blue text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-metrix-blue-hover hover:shadow-lg focus:bg-metrix-blue-hover focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
           disabled={loading}
         >
           {loading ? "loading..." : "Sign In"}
@@ -128,9 +140,10 @@ export default function LoginForm() {
         </div>
         <div className="flex items-center">
           <button
+            type="button"
             onClick={() => router.push("/register")}
             disabled={loading}
-            className="inline-block px-7 py-3 bg-blue-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
+            className="inline-block px-7 py-3 bg-metrix-blue text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-metrix-blue-hover hover:shadow-lg focus:bg-metrix-blue-hover focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
           >
             Register
           </button>

@@ -72,7 +72,7 @@ export default function AddModal({
             onClick={() => showAddModal({ show: false, steamid: false })}
           />
           <div className="flex items-center min-h-screen px-4 py-8">
-            <div className="relative w-full max-w-lg mx-auto bg-gray-900 dark:bg-bgDarkmode rounded-md shadow-lg">
+            <div className="relative w-full max-w-lg mx-auto bg-metrix-blue-background dark:bg-bgDarkmode rounded-md shadow-lg">
               <div className="flex items-center justify-between p-4 border-b">
                 <h4 className="text-xl font-bold text-gray-200 flex flex-row items-center dark:text-textDarkmode">
                   New Account
@@ -96,81 +96,87 @@ export default function AddModal({
                 </button>
               </div>
               <div>
-                <div className="space-y-2 p-4 mt-3 text-[15.5px] leading-relaxed text-gray-500">
-                  <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                    Account Name
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="h-auto block w-full px-3 py-2 text-gray-900   border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-                    placeholder="Account Name"
-                    onChange={(e) => setSelectedAccountName(e.target.value)}
-                    type="text  "
-                  />
-                  <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                    Username
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-                    placeholder="Username"
-                    onChange={(e) => setSelectedUsermame(e.target.value)}
-                    type="text  "
-                  />
-                  <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                    Password
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
-                    placeholder="Password"
-                    onChange={(e) => setSelectedPassword(e.target.value)}
-                    type="password"
-                  />
-                  <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                    Service / Game
-                  </label>
-                  <input
-                    className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
-                    placeholder="Used for?"
-                    onChange={(e) => setSelectedUsedFor(e.target.value)}
-                    type="text"
-                  />
-                  <div className="mt-5">
-                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode mt-10">
-                      <span>Master Password</span>
+                <form onSubmit={handleSubmit}>
+                  <div className="space-y-2 p-4 mt-3 text-[15.5px] leading-relaxed text-gray-500">
+                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                      Account Name
                       <span className="text-red-500">*</span>
-                      <br />
-                      <span>
-                        (Can be anything, BUT MAKE SURE TO REMEMBER IT!)
-                      </span>
+                    </label>
+                    <input
+                      required
+                      className="h-auto block w-full px-3 py-2 text-gray-900   border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                      placeholder="Account Name"
+                      onChange={(e) => setSelectedAccountName(e.target.value)}
+                      type="text"
+                    />
+                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                      Username
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      required
+                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                      placeholder="Username"
+                      onChange={(e) => setSelectedUsermame(e.target.value)}
+                      type="text"
+                    />
+                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                      Password
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      required
+                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                      placeholder="Password"
+                      onChange={(e) => setSelectedPassword(e.target.value)}
+                      type="password"
+                    />
+                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                      Service / Game
                     </label>
                     <input
                       className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
-                      placeholder="Master Password"
-                      onChange={(e) =>
-                        setSelectedMasterPassword(e.target.value)
-                      }
-                      type="password"
+                      placeholder="Used for?"
+                      onChange={(e) => setSelectedUsedFor(e.target.value)}
+                      type="text"
                     />
+                    <div className="mt-5">
+                      <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode mt-10">
+                        <span>Master Password</span>
+                        <span className="text-red-500">*</span>
+                        <br />
+                        <span>
+                          (Can be anything, BUT MAKE SURE TO REMEMBER IT!)
+                        </span>
+                      </label>
+                      <input
+                        required
+                        className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                        placeholder="Master Password"
+                        onChange={(e) =>
+                          setSelectedMasterPassword(e.target.value)
+                        }
+                        type="password"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 p-4 mt-5 border-t">
-                  <button
-                    className="px-6 py-2 text-white bg-blue-500 rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
-                    onClick={() => handleSubmit()}
-                  >
-                    Save
-                  </button>
-                  <button
-                    className="px-6 py-2 text-gray-200 border rounded-md outline-none dark:text-textDarkmode ring-offset-2 ring-blue-400 focus:ring-2"
-                    onClick={() =>
-                      showAddModal({ show: false, steamid: false })
-                    }
-                  >
-                    Cancel
-                  </button>
-                </div>
+                  <div className="flex items-center gap-3 p-4 mt-5 border-t">
+                    <button
+                      className="px-6 py-2 text-white bg-metrix-blue rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
+                      type="submit"
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="px-6 py-2 text-gray-200 border rounded-md outline-none dark:text-textDarkmode ring-offset-2 ring-blue-400 focus:ring-2"
+                      onClick={() =>
+                        showAddModal({ show: false, steamid: false })
+                      }
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

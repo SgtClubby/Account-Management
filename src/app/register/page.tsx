@@ -16,9 +16,16 @@ export default function LoginForm() {
     username: "",
     email: "",
     password: "",
+    tempCheckPassword: "",
   });
+
+  function classNames(...classes: string[]) {
+    return classes.filter(Boolean).join(" ");
+  }
+
   const [error, setError] = useState("");
   const [alert, setAlert] = useState("");
+  const [match, setMatch] = useState<string | null>(null);
 
   const [satisfiesLG, setsatisfiesLG] = useState(false);
   const [satisfiesLC, setsatisfiesLC] = useState(false);
@@ -64,6 +71,22 @@ export default function LoginForm() {
     validatePassword(formValues.password);
   }, [formValues.password]);
 
+  const [valid, setValid] = useState(false);
+  useEffect(() => {
+    if (!formValues.tempCheckPassword || !formValues.password) {
+      setMatch(null);
+      setValid(false);
+    }
+
+    if (formValues.password !== formValues.tempCheckPassword) {
+      setMatch("Passwords do not match!");
+      setValid(false);
+    } else {
+      setMatch(null);
+      setValid(true);
+    }
+  }, [formValues.tempCheckPassword === formValues.password]);
+
   const onSubmit = async (e: React.FormEvent) => {
     setError("");
     e.preventDefault();
@@ -107,7 +130,12 @@ export default function LoginForm() {
         }, 2000);
       } else {
         setError(registerJson?.message);
-        setFormValues({ username: "", email: "", password: "" });
+        setFormValues({
+          username: "",
+          email: "",
+          password: "",
+          tempCheckPassword: "",
+        });
       }
     } catch (error: any) {
       setLoading(false);
@@ -121,7 +149,7 @@ export default function LoginForm() {
   };
 
   const input_style =
-    "mx-auto form-control block w-full px-4 py-5 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none";
+    "mx-auto form-control block w-full px-4 py-5 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none";
 
   return (
     <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
@@ -157,7 +185,7 @@ export default function LoginForm() {
             className={`${input_style}`}
           />
         </div>
-        <div className={`${formValues.password.length == 0 ? "mb-6" : "mb-2"}`}>
+        <div className="mb-6">
           <input
             required
             type="password"
@@ -168,12 +196,25 @@ export default function LoginForm() {
             className={`${input_style}`}
           />
         </div>
+        <div className={`${formValues.password.length == 0 ? "mb-6" : "mb-2"}`}>
+          <input
+            required
+            type="password"
+            name="tempCheckPassword"
+            value={formValues.tempCheckPassword}
+            onChange={handleChange}
+            placeholder="Repeat Password"
+            className={`${input_style}`}
+          />
+        </div>
+        {match && <p className="text-red-500 mb-6">{match}</p>}
         {/* Make a password requirenent list using the states*/}
         <div
           className={`${
             formValues.password.length == 0 ? "hidden mb-6" : "block mb-6"
           }`}
         >
+          <p className="text-gray-200 mb-2">Password requirements:</p>
           <ul className="list-disc list-inside">
             <li
               className={`${satisfiesLG ? "text-green-500" : "text-red-500"}`}
@@ -204,8 +245,11 @@ export default function LoginForm() {
         </div>
         <button
           type="submit"
-          className="inline-block px-7 py-4 bg-blue-600 text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
-          disabled={loading}
+          className={classNames(
+            `inline-block px-7 py-4 bg-metrix-blue text-white font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-metrix-blue-hover hover:shadow-lg focus:bg-metrix-blue-hover focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full`,
+            !valid || !satisfiesAll ? "cursor-not-allowed" : "cursor-pointer"
+          )}
+          disabled={loading || !valid || !satisfiesAll}
         >
           {loading ? "loading..." : "Register"}
         </button>
@@ -217,7 +261,7 @@ export default function LoginForm() {
         <button
           onClick={() => router.push("/login")}
           disabled={loading}
-          className="inline-block px-7 py-4 bg-blue-600 text-white text-center font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:bg-blue-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
+          className="inline-block px-7 py-4 bg-metrix-blue text-white text-center font-medium text-sm leading-snug uppercase rounded shadow-md hover:bg-metrix-blue-hover hover:shadow-lg focus:bg-metrix-blue-hover focus:shadow-lg focus:outline-none focus:ring-0 active:bg-blue-800 active:shadow-lg transition duration-150 ease-in-out w-full"
         >
           Back
         </button>

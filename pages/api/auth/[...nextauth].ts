@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { User as UserDB, Account } from "../../../mongo/mongo";
 import { compare, hash } from "bcrypt";
 import speakeasy from "speakeasy";
+import { decrypt } from "lib/functions";
 
 export const authOptions: NextAuthOptions = {
   // Configure one or more authentication providers
@@ -15,15 +16,18 @@ export const authOptions: NextAuthOptions = {
         "2fa-key": { label: "2FA Key" },
       },
       async authorize(credentials, req) {
-        console.log(credentials);
-
         const dbuser = await UserDB.findOne({
           username: credentials?.username,
         });
 
         if (dbuser.twoFactorAuth) {
+          const decryptedSecret = decrypt(
+            dbuser.twoFactorAuthSecret,
+            dbuser.salt + process.env.PEPPER
+          );
+
           const verified = speakeasy.totp.verify({
-            secret: dbuser.twoFactorAuthSecret,
+            secret: decryptedSecret,
             encoding: "base32",
             token: credentials?.["2fa-key"] as string,
           });
@@ -37,8 +41,6 @@ export const authOptions: NextAuthOptions = {
           credentials?.password as string,
           dbuser?.password
         );
-
-        console.log(isValid);
 
         if (isValid) {
           return dbuser;
