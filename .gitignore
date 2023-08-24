@@ -12,8 +12,14 @@
 /.next/
 /out/
 
+# logging
+/logs.txt
+
 # production
 /build
+
+# development
+/dev
 
 # misc
 .DS_Store
