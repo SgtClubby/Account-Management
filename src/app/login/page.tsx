@@ -1,5 +1,6 @@
 "use client";
 
+import { logger } from "lib/logger";
 import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import {
@@ -62,6 +63,8 @@ export default function LoginForm() {
     setFormValues({ ...formValues, [name]: value });
   };
 
+  logger(`LoginForm: ${formValues}`, "info");
+
   const input_style =
     "mx-auto form-control block px-4 py-3 text-sm w-full font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none";
 
@@ -72,7 +75,7 @@ export default function LoginForm() {
           <img
             alt="logo"
             src="/metrixrnd.png"
-            className="mx-auto small:mx-0 small:mr-3 mb-6 w-full hidden md:block small:w-20"
+            className="mx-auto small:mx-0 small:mr-3 mb-6 w-full small:w-20"
           />
           <h1 className="text-gray-200 text-2xl font-extrabold text-center mb-5 sm:text-1xl">
             Account Management
@@ -107,6 +110,14 @@ export default function LoginForm() {
             autoComplete="off"
             autoCorrect="off"
           />
+          <label>
+            <a
+              href="/reset-password"
+              className="text-gray-200 text-sm font-semibold mb-2"
+            >
+              Forgot Password?
+            </a>
+          </label>
         </div>
         <span>
           <p className="text-gray-200 text-sm font-semibold mb-2">
