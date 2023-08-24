@@ -1,15 +1,27 @@
 import { NextResponse } from "next/server";
-import { User, EmailCheck } from "../../../../mongo/mongo";
+import { User } from "../../../../mongo/mongo";
 import { Resend } from "resend";
 import AccountManagementVerifyEmail from "../register/verifyEmail";
 import { randomBytes } from "crypto";
+import { EmailCheck } from "../../../../mongo/email";
+import { logger } from "lib/logger";
 
 export async function PUT(request: Request, response: Response) {
   const body = await request.json();
   const token = body.token;
   const id = body.id;
 
-  const checkIfTokenExists = await EmailCheck.findOne({ token, id });
+  if (!id || !token)
+    return NextResponse.json(
+      {
+        message: "Missing fields!",
+        ok: false,
+        status: 400,
+      },
+      { status: 400 }
+    );
+
+  const checkIfTokenExists = await EmailCheck.findOne({ token });
 
   if (!checkIfTokenExists)
     return NextResponse.json(
@@ -49,6 +61,16 @@ export async function POST(request: Request, response: Response) {
 
   const id = body.id;
 
+  if (!id)
+    return NextResponse.json(
+      {
+        message: "Missing fields!",
+        ok: false,
+        status: 400,
+      },
+      { status: 400 }
+    );
+
   const userdb = await User.findById({ _id: id });
   const resend = new Resend(process.env.RESEND_KEY as string);
 
@@ -86,9 +108,6 @@ export async function POST(request: Request, response: Response) {
 
   const token = randomBytes(16).toString("hex");
 
-  // Delete old token if exists
-  await EmailCheck.deleteOne({ id });
-
   const emailCheck = new EmailCheck({
     id,
     token,
@@ -103,10 +122,14 @@ export async function POST(request: Request, response: Response) {
     baseUrl: process.env.NEXTAUTH_URL as string,
   };
 
-  console.log("LOG: Tried to send email to " + userdb.email);
+  logger(
+    `Sending email verification to ${userdb.email}, with link ${process.env.NEXTAUTH_URL}/verify/${user.id}/${token}`,
+    "info"
+  );
+  const from = `verify@${process.env.EMAIL_DOMAIN}`;
 
   resend.sendEmail({
-    from: "noreply@verify.metrix.pw",
+    from,
     to: userdb.email,
     subject: "Verify your email",
     react: AccountManagementVerifyEmail({ user }),
