@@ -1,68 +1,206 @@
 "use client";
 
-import { useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { AES } from "crypto-js";
+import useAlert from "hooks/useAlert";
+import useRefresh from "hooks/useRefresh";
+import { encrypt, encryptFields, encryptFiles } from "lib/functions";
+import InputBox from "./InputBox";
+import DeleteIcon from "@mui/icons-material/Delete";
+import useForm from "hooks/useForm";
+import {
+  InputBoxStateProps,
+  SubmittedAccountProps,
+  UploadedFileProps,
+} from "../types";
+import { InformationCircleIcon } from "@heroicons/react/20/solid";
 
 export default function AddModal({
   addModal,
-  fetchData,
   showAddModal,
   session,
 }: {
   addModal: any;
-  fetchData: any;
   showAddModal: any;
   session: any;
 }) {
-  const [selectedAccountName, setSelectedAccountName] = useState("");
-  const [selectedUsername, setSelectedUsermame] = useState("");
-  const [selectedPassword, setSelectedPassword] = useState("");
-  const [selectedUsedFor, setSelectedUsedFor] = useState("");
+  // Master password state
   const [selectedMasterPassword, setSelectedMasterPassword] = useState("");
 
-  const [error, setError] = useState({ show: false, message: "" });
+  // Reset form values states when modal is closed or opened
 
-  async function handleSubmit() {
+  useEffect(() => {
+    if (addModal.show) {
+      setFormValues({ username: "", password: "", fields: [] });
+      setInputs([]);
+      setNewFieldName("");
+      setFile(null);
+      setFileKey(Math.random().toString(36));
+      setUploadedFiles([]);
+    }
+  }, [addModal.show]);
+
+  // Form submission state
+
+  const { formValues, setFormValues, handleChange } =
+    useForm<SubmittedAccountProps>({
+      username: "",
+      password: "",
+      fields: [],
+    });
+
+  // Hooks
+
+  const alert = useAlert();
+  const { refresh, refreshState } = useRefresh();
+
+  // Form submission
+
+  async function handleSubmit(e: any) {
+    e.preventDefault();
+
+    const body = {
+      username: formValues.username,
+      encPassword: encrypt(formValues.password, selectedMasterPassword),
+      fields: encryptFields(inputs, selectedMasterPassword),
+      files: encryptFiles(uploadedFiles, selectedMasterPassword),
+    };
+
     const res = await fetch("/api/accounts", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        accountName: selectedAccountName,
-        username: selectedUsername,
-        encPassword: AES.encrypt(
-          selectedPassword,
-          selectedMasterPassword
-        ).toString(),
-        usedFor: selectedUsedFor,
-      }),
+      body: JSON.stringify(body),
     });
 
     const json = await res.json();
 
     if (json.error) {
-      setError({ show: true, message: json.error });
+      alert.showAlert(json.error);
     } else {
-      setSelectedAccountName("");
-      setSelectedUsermame("");
-      setSelectedPassword("");
-      setSelectedUsedFor("");
       setSelectedMasterPassword("");
-      setError({ show: true, message: "Success!" });
       showAddModal({ show: false });
-      fetchData();
-      setTimeout(() => {
-        setError({ show: false, message: "" });
-      }, 2000);
+      refreshState();
+      alert.showAlertForSeconds("Account added!", 5);
     }
   }
 
+  // Input boxes
+
+  const [inputs, setInputs] = useState<InputBoxStateProps[]>([]);
+  const [newFieldName, setNewFieldName] = useState("");
+
+  const addInput = () => {
+    if (newFieldName !== "") {
+      // Only add new input if the new field name is not empty
+      // Find the highest id, to ensure no duplicates
+      // (might result in uneven ids if some inputs are deleted, but it doesn't matter since the ids are only used as react keys and state)
+      const highestId = inputs.reduce((acc, curr) => {
+        if (parseInt(curr.id) > acc) {
+          return parseInt(curr.id);
+        }
+        return acc;
+      }, 0);
+      setInputs([
+        ...inputs,
+        { id: `${highestId + 1}`, value: "", name: newFieldName },
+      ]);
+      setNewFieldName(""); // Reset the field name input for next input
+    } else {
+      alert.showAlertForSeconds("Field name cannot be empty", 5, false);
+    }
+  };
+
+  const deleteInput = (id: string) => {
+    const index = inputs.findIndex((input) => input.id === id);
+    // remove the index from inputs
+    const newInputs = [...inputs];
+    newInputs.splice(index, 1);
+
+    setInputs(newInputs);
+  };
+
+  const onChange = (id: string, newValue: string) => {
+    setInputs(
+      inputs.map((input) =>
+        input.id === id ? { ...input, value: newValue } : input
+      )
+    );
+  };
+
+  // File upload
+  const [file, setFile] = useState<File | null>(null);
+  const [fileKey, setFileKey] = useState(Math.random().toString(36));
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFileProps[]>([]);
+  const uploadFile = () => {
+    if (file !== null) {
+      const reader = new FileReader();
+
+      reader.onloadend = function (e) {
+        if (reader.result === null) {
+          return;
+        }
+
+        if (file.size > 10000000) {
+          alert.showAlertForSeconds(
+            "File cannot be larger than 10MB",
+            5,
+            false
+          );
+          return;
+        }
+
+        setUploadedFiles([
+          ...uploadedFiles,
+          {
+            id: (Math.random() * 100).toFixed(0) + "",
+            fileName: file.name,
+            size: file.size,
+            type: file.type,
+            data: reader.result as string,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    setFile(null);
+    setFileKey(Math.random().toString(36));
+  };
+
+  const deleteFile = (id: string) => {
+    const index = uploadedFiles.findIndex((file) => file.id === id);
+    // remove the index from inputs
+    const newFileArray = [...uploadedFiles];
+    newFileArray.splice(index, 1);
+
+    setUploadedFiles(newFileArray);
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]); // You could also use a FileList here if you're expecting multiple files
+    }
+  };
+
   return (
     <>
-      {error.show && (
-        <div className="fixed bg-green-100 border border-green-400 text-greeb-700 px-4 py-3 rounded w-32 right-0 left-0 m-auto">
-          <span className="block sm:inline">{error.message}</span>
+      {alert.data.show && (
+        <div
+          className={`${
+            alert.data.type
+              ? "border-green-400 bg-green-100"
+              : "border-red-400 bg-red-100"
+          } fixed z-[55] border px-4 py-3 rounded w-fit right-0 left-0 m-auto`}
+        >
+          <span
+            className={`${
+              alert.data.type ? "text-green-500" : "text-red-500"
+            } block sm:inline`}
+          >
+            {alert.data.message}
+          </span>
         </div>
       )}
       {addModal.show && session ? (
@@ -98,50 +236,136 @@ export default function AddModal({
               <div>
                 <form onSubmit={handleSubmit}>
                   <div className="space-y-2 p-4 mt-3 text-[15.5px] leading-relaxed text-gray-500">
-                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                      Account Name
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      className="h-auto block w-full px-3 py-2 text-gray-900   border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-                      placeholder="Account Name"
-                      onChange={(e) => setSelectedAccountName(e.target.value)}
-                      type="text"
-                    />
-                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                      Username
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-                      placeholder="Username"
-                      onChange={(e) => setSelectedUsermame(e.target.value)}
-                      type="text"
-                    />
-                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                      Password
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      required
-                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
-                      placeholder="Password"
-                      onChange={(e) => setSelectedPassword(e.target.value)}
-                      type="password"
-                    />
-                    <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-                      Service / Game
-                    </label>
-                    <input
-                      className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
-                      placeholder="Used for?"
-                      onChange={(e) => setSelectedUsedFor(e.target.value)}
-                      type="text"
-                    />
-                    <div className="mt-5">
-                      <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode mt-10">
+                    <div className="mb-6 space-y-2 text-[15.5px] leading-relaxed text-gray-500">
+                      <h1 className="text-gray-200 text-lg font-medium">
+                        Main Fields
+                      </h1>
+                      <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                        Username
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        required
+                        type="text"
+                        name="username"
+                        value={formValues.username}
+                        onChange={handleChange}
+                        placeholder="Username"
+                        className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
+                      />
+                      <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                        Password
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        required
+                        type="password"
+                        name="password"
+                        value={formValues.password}
+                        onChange={handleChange}
+                        placeholder="Password"
+                        className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                      />
+                    </div>
+                    <div className="space-y-2 text-[15.5px] leading-relaxed text-gray-500">
+                      <h1 className="text-gray-200 text-lg font-medium">
+                        Optional Fields
+                        <InformationCircleIcon
+                          className="cursor-help ml-2 w-5 h-5 inline-block text-gray-200 dark:text-textDarkmode"
+                          title="Used for additional information or metadata, such as email, phone number, etc."
+                        />
+                      </h1>
+                      {/* Render existing input fields */}
+                      {inputs.map((input) => (
+                        <div
+                          key={input.id}
+                          className="flex flex-row items-center space-x-3"
+                        >
+                          <InputBox
+                            id={input.id}
+                            value={input.value}
+                            name={input.name}
+                            onChange={onChange}
+                          />
+                          <DeleteIcon
+                            onClick={() => deleteInput(input.id)}
+                            className="text-red-500 mt-8"
+                          />
+                        </div>
+                      ))}
+                      {/* Add new field name input here */}
+                      <div className="flex flex-row items-center space-x-3">
+                        <input
+                          className="h-auto block w-48 px-2 py-1 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                          value={newFieldName}
+                          onChange={(e) => setNewFieldName(e.target.value)}
+                          placeholder="Field name"
+                        />
+                        <button
+                          type="button"
+                          className="text-gray-200 px-2 py-1 border border-metrix-blue rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
+                          onClick={addInput}
+                        >
+                          Add field
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-[15.5px] leading-relaxed text-gray-500">
+                      <h1 className="text-gray-200 text-lg font-medium mt-6">
+                        Files
+                      </h1>
+                      <div className="flex flex-row items-center space-x-3">
+                        <input
+                          className="h-auto block w-fit px-2 py-1 text-gray-200 border rounded-md shadow-md text- focus:ring-blue-400 focus:border-blue-400 sm:text-md"
+                          type="file"
+                          accept="video/*,image/*,text/*,application/*"
+                          key={fileKey}
+                          onChange={handleFileChange}
+                        />
+                        <button
+                          type="button"
+                          className="text-gray-200 px-2 py-1 border border-metrix-blue rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
+                          onClick={uploadFile}
+                        >
+                          Upload
+                        </button>
+                      </div>
+                      {uploadedFiles.map((file) => (
+                        <div className="flex flex-col w-full space-y-2 text-[15.5px] leading-relaxed">
+                          <div
+                            key={file.id}
+                            className="flex flex-row items-center space-x-3 mt-2"
+                          >
+                            <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+                              {file.fileName}
+                            </label>
+                            <div className=" h-auto block w-fit px-2 py-1 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md">
+                              <a
+                                href={file.data}
+                                download={file.fileName}
+                                className="text-gray-200 w-fit"
+                              >
+                                Download
+                              </a>
+                            </div>
+                            <DeleteIcon
+                              onClick={() => deleteFile(file.id)}
+                              className="text-red-500"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                      {uploadedFiles.length === 0 && (
+                        <div className="flex flex-row items-center space-x-3 mt-2">
+                          <label className="block text-sm font-medium text-gray-200">
+                            No files uploaded
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-3">
+                      <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode mt-6">
                         <span>Master Password</span>
                         <span className="text-red-500">*</span>
                         <br />

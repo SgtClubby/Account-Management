@@ -3,18 +3,9 @@ import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { classNames } from "lib/functions";
 
-function classNames(...classes: any[]) {
-  return classes.filter(Boolean).join(" ");
-}
-
-export default function Dropdown({
-  showTwoFactorModal,
-  showPasswordResetModal,
-}: {
-  showTwoFactorModal: Function;
-  showPasswordResetModal: Function;
-}) {
+export default function Dropdown() {
   const router = useRouter();
 
   return (
@@ -40,21 +31,6 @@ export default function Dropdown({
       >
         <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
           <div className="py-1">
-            <Menu.Item>
-              {({ active }) => (
-                <button
-                  onClick={() => {
-                    showTwoFactorModal({ show: true });
-                  }}
-                  className={classNames(
-                    active ? "bg-gray-200 text-gray-900" : "text-gray-700",
-                    "block w-full px-4 py-2 text-left text-sm"
-                  )}
-                >
-                  Manage 2FA
-                </button>
-              )}
-            </Menu.Item>
             <Menu.Item>
               {({ active }) => (
                 <button
