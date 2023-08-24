@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { EmailCheck, User } from "../../../../mongo/mongo";
+import { User } from "../../../../mongo/mongo";
+import { EmailCheck } from "../../../../mongo/email";
 import { hash } from "bcrypt";
 import { randomBytes } from "crypto";
 import AccountManagementVerifyEmail from "./verifyEmail";
 import type { Body, User as UserType } from "../../types";
 import { Resend } from "resend";
+import { logger } from "lib/logger";
 
 export async function POST(request: Request, response: Response) {
   const body: Body = await request.json();
@@ -66,13 +68,23 @@ export async function POST(request: Request, response: Response) {
     baseUrl: process.env.NEXTAUTH_URL as string,
   };
 
-  console.log("LOG: Tried to send email to " + email);
-  resend.sendEmail({
-    from: "noreply@verify.metrix.pw",
-    to: email,
-    subject: "Verify your email",
-    react: AccountManagementVerifyEmail({ user }),
-  });
+  logger(
+    `Sending email verification to ${email}, with link ${process.env.NEXTAUTH_URL}/verify/${user.id}/${token}}`,
+    "info"
+  );
+
+  const from = `verify@${process.env.EMAIL_DOMAIN}`;
+
+  try {
+    resend.sendEmail({
+      from,
+      to: email,
+      subject: "Verify your email",
+      react: AccountManagementVerifyEmail({ user }),
+    });
+  } catch (e) {
+    console.log(e);
+  }
 
   return NextResponse.json(
     {
