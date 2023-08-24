@@ -6,7 +6,17 @@ import { genSalt } from "bcrypt";
 import { AES, enc } from "crypto-js";
 
 export async function POST(request: Request, response: Response) {
-  const { secret, token, id } = await request.json();
+  const body = await request.json();
+
+  const secret = body.secret;
+  const token = body.token;
+  const id = body.id;
+
+  if (!id) return NextResponse.json({ message: "Missing id", verified: false });
+  if (!token)
+    return NextResponse.json({ message: "Missing token", verified: false });
+  if (!secret)
+    return NextResponse.json({ message: "Missing secret", verified: false });
 
   const verified = speakeasy.totp.verify({
     secret: secret,
