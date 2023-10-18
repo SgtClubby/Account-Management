@@ -12,14 +12,16 @@ import { classNames, defaultProfilePicture } from "lib/functions";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PasswordIcon from "@mui/icons-material/Password";
 import VpnKeyIcon from "@mui/icons-material/VpnKey";
+import SecurityIcon from "@mui/icons-material/Security";
 import useRefresh from "hooks/useRefresh";
+import Security from "./security";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
 
   const router = useRouter();
   if (status === "unauthenticated") {
-    router.push("/login");
+    router.push("/login?redirect=/settings");
   }
 
   const [user, setUser] = useState<UserType>();
@@ -125,6 +127,19 @@ export default function SettingsPage() {
                     <p className="hidden sm:hidden md:block ml-1">MFA</p>
                   </div>
                 </button>
+                <button
+                  accessKey="4"
+                  onClick={() => setActiveTab("security")}
+                  className={classNames(
+                    "text-gray-200 text-lg border-white text-left border-b py-3 w-full",
+                    activeTab == "security" && "bg-metrix-blue"
+                  )}
+                >
+                  <div className="flex flex-row items-center">
+                    <SecurityIcon className="ml-5" />
+                    <p className="hidden sm:hidden md:block ml-1">Security</p>
+                  </div>
+                </button>
               </div>
 
               {/* Main */}
@@ -146,6 +161,7 @@ export default function SettingsPage() {
                       showTwoFactorModal={showTwoFactorModal}
                     />
                   )}
+                  {activeTab == "security" && <Security />}
                 </div>
               </div>
             </div>
