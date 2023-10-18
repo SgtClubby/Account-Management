@@ -46,6 +46,7 @@ export default function PasswordRecovery() {
             value={formValues.email}
             className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
             type="email"
+            autoComplete="email"
             placeholder="Enter your email"
           />
           <p className="mt-2 text-gray-300">
