@@ -4,6 +4,8 @@ const database =
   process.env.MONGODB_URI! + process.env.DB! + "?authSource=admin";
 
 mongoose.connect(database).catch((e) => console.log(e));
+// debug flag for mongoose
+mongoose.set("debug", true);
 
 const userSchema = new Schema({
   username: String,
@@ -13,6 +15,7 @@ const userSchema = new Schema({
   twoFactorAuthSecret: { type: String, default: null },
   emailVerified: { type: Boolean, default: false },
   salt: { type: String, default: null },
+  accountSecurityLevel: { type: Number, default: 2 },
 });
 
 const accountSchema = new Schema({
