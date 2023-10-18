@@ -20,6 +20,10 @@ export const authOptions: NextAuthOptions = {
           username: credentials?.username,
         });
 
+        if (!dbuser) {
+          return false;
+        }
+
         if (dbuser.twoFactorAuth) {
           const decryptedSecret = decrypt(
             dbuser.twoFactorAuthSecret,
@@ -33,7 +37,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!verified) {
-            return null;
+            return false;
           }
         }
 
@@ -45,7 +49,7 @@ export const authOptions: NextAuthOptions = {
         if (isValid) {
           return dbuser;
         } else {
-          return null;
+          return false;
         }
       },
     }),
