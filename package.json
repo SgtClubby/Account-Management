@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "NEXTAUTH_URL=http://localhost:3000 DB=AccountManager-dev next dev",
     "build": "sed -i 's/distDir: \"dev\"/distDir: \"build\"/' next.config.js && sleep 1 && next build && pm2 start ecosystem.config.js && sleep 1 && sed -i 's/distDir: \"build\"/distDir: \"dev\"/' next.config.js",
-    "start": "NEXTAUTH_URL=https://metrix.pw DB=AccountManager next start -p 6969",
+    "start": "NEXTAUTH_URL=http://192.168.1.99:6969/ DB=AccountManager next start -p 6969",
     "lint": "next lint"
   },
   "dependencies": {
