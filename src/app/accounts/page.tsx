@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status == "unauthenticated") {
-      redirect("/login");
+      redirect("/login?redirect=/accounts");
     }
   }, [session, status]);
 
