@@ -5,3 +5,42 @@
 body {
   @apply bg-metrix-blue-background;
 }
+
+@layer components {
+  .metrix_input {
+    @apply mx-auto block w-full px-4 py-5 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none;
+  }
+
+  .metrix_input_md {
+    @apply mx-auto block w-full px-3 py-4 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none;
+  }
+
+  .metrix_input_sm {
+    @apply mx-auto block w-full px-42 py-3 text-sm font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-metrix-blue focus:outline-none;
+  }
+
+  .arrow::before {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0;
+    background-color: white !important;
+    z-index: 60 !important;
+    width: 16px !important;
+    content: "" !important;
+    height: 16px !important;
+    transform: translateX(100%) translateY(-50%) rotate(45deg) !important;
+  }
+
+  @media (min-width: 1024px) {
+    .arrow::before {
+      position: absolute !important;
+      left: 0 !important;
+      background-color: white !important;
+      z-index: 60 !important;
+      width: 16px !important;
+      content: "" !important;
+      height: 16px !important;
+      transform: translateX(-50%) translateY(100%) rotate(45deg) !important;
+    }
+  }
+}
