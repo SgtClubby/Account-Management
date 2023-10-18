@@ -42,8 +42,15 @@ export type Field = {
   name: string;
 };
 
+export enum SecurityLevel {
+  LOW = 0,
+  MEDIUM = 1,
+  HIGH = 2,
+}
+
 export type User = {
   _id: string;
+  accountSecurityLevel: SecurityLevel;
   username: string;
   email: string;
   password: string;
