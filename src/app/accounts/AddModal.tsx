@@ -137,7 +137,11 @@ export default function AddModal({
     if (file !== null) {
       const reader = new FileReader();
 
+      reader.readAsDataURL(file);
+      console.log(file);
+
       reader.onloadend = function (e) {
+        console.log(reader.result);
         if (reader.result === null) {
           return;
         }
@@ -162,7 +166,6 @@ export default function AddModal({
           },
         ]);
       };
-      reader.readAsDataURL(file);
     }
 
     setFile(null);
@@ -264,6 +267,7 @@ export default function AddModal({
                         value={formValues.password}
                         onChange={handleChange}
                         placeholder="Password"
+                        autoComplete="new-password"
                         className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
                       />
                     </div>
@@ -377,6 +381,7 @@ export default function AddModal({
                         required
                         className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-400 focus:border-blue-400 sm:text-md"
                         placeholder="Master Password"
+                        autoComplete="new-password"
                         onChange={(e) =>
                           setSelectedMasterPassword(e.target.value)
                         }
