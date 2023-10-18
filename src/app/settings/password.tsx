@@ -1,84 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { AES } from "crypto-js";
 import { SessionWithId } from "../types";
+import usePasswordValidation from "hooks/usePassworsValidation";
+import useForm from "hooks/useForm";
+import useAlert from "hooks/useAlert";
 
 export default function Password({ session }: { session: SessionWithId }) {
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [tempCheckPassword, setTempCheckPassword] = useState("");
+  const alert = useAlert();
 
-  const [valid, setValid] = useState(false);
+  const { formValues, setFormValues, handleChange } = useForm({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-  const [error, setError] = useState({ show: false, message: "", type: false });
+  const { newPassword, confirmPassword, oldPassword } = formValues;
+  const { isValid, isMatching, PasswordRequirements } = usePasswordValidation(
+    newPassword,
+    confirmPassword
+  );
 
-  useEffect(() => {
-    if (newPassword === "" || tempCheckPassword === "") {
-      setError({ show: false, message: "", type: false });
-      setValid(false);
-      return;
-    }
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
 
-    if (newPassword !== tempCheckPassword) {
-      setError({ show: true, message: "Passwords do not match!", type: false });
-      setValid(false);
-    } else {
-      setError({ show: false, message: "", type: false });
-      setValid(true);
-    }
-  }, [tempCheckPassword]);
-
-  const [satisfiesLG, setsatisfiesLG] = useState(false);
-  const [satisfiesLC, setsatisfiesLC] = useState(false);
-  const [satisfiesUP, setsatisfiesUP] = useState(false);
-  const [satisfiesDI, setsatisfiesDI] = useState(false);
-  const [satisfiesSC, setsatisfiesSC] = useState(false);
-
-  const [satisfiesAll, setsatisfiesAll] = useState(false);
-
-  useEffect(() => {
-    function validatePassword(password = "") {
-      // Require at least 8 characters
-      setsatisfiesLG(password.length >= 8);
-
-      // Require at least one lower case letter
-      setsatisfiesLC(/[a-z]/.test(password));
-
-      // Require at least one upper case letter
-      setsatisfiesUP(/[A-Z]/.test(password));
-
-      // Require at least one digit
-      setsatisfiesDI(/[0-9]/.test(password));
-
-      // Require at least one special character
-      var specialChars = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
-      setsatisfiesSC(specialChars.test(password));
-    }
-
-    if (
-      satisfiesLG &&
-      satisfiesLC &&
-      satisfiesUP &&
-      satisfiesDI &&
-      satisfiesSC
-    ) {
-      setsatisfiesAll(true);
-    } else {
-      setsatisfiesAll(false);
-    }
-
-    validatePassword(newPassword);
-  }, [newPassword]);
-
-  async function handleSubmit() {
     // check all fields if empty
-    if (!oldPassword || !newPassword || !tempCheckPassword) {
-      setError({
-        show: true,
-        message: "Please fill out all fields!",
-        type: false,
-      });
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      alert.showAlert("Please fill all fields", false);
       return;
     }
 
@@ -96,94 +45,81 @@ export default function Password({ session }: { session: SessionWithId }) {
 
     const json = await res.json();
 
-    if (!json.ok) {
-      setError({ show: true, message: json.message, type: false });
-    } else {
-      setNewPassword("");
-      setOldPassword("");
-      setError({
-        show: true,
-        message: json.message,
-        type: true,
+    if (json.ok) {
+      alert.showAlert(json.message, true);
+      setFormValues({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
       });
+    } else {
+      alert.showAlertForSeconds(json.message, 5, false);
     }
   }
 
   return (
     <div className="py-4 px-4 flex flex-col w-full rounded-md h-full transition-all ease-in-out duration-100">
-      <div className="flex">
-        <div className="flex-col space-y-2 p-4 text-[15.5px] leading-relaxed text-gray-500">
-          <label className="block text-md font-medium text-gray-200">
-            Old Password
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            className="h-auto block w-full px-3 py-2 text-gray-900   border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-            placeholder="Old Password"
-            onChange={(e) => setOldPassword(e.target.value)}
-            type="password"
-          />
-          <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-            New Password
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-            placeholder="New Password"
-            onChange={(e) => setNewPassword(e.target.value)}
-            type="password"
-          />
-          <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
-            Repeat Password
-            <span className="text-red-500">*</span>
-          </label>
-          <input
-            className="h-auto block w-full px-3 py-2 text-gray-900 border rounded-md shadow-md focus:ring-blue-500 focus:border-blue-500 sm:text-md"
-            placeholder="Repeat Password"
-            onChange={(e) => setTempCheckPassword(e.target.value)}
-            type="password"
-          />
-        </div>
-      </div>
-      <div
-        className={`${
-          newPassword.length == 0 ? "hidden mb-6" : "ml-5 block mb-6"
-        }`}
+      <form
+        className="flex-col space-y-2 p-4 w-[16rem] lg:w-[24rem] text-[15.5px] leading-relaxed text-gray-500"
+        onSubmit={handleSubmit}
       >
-        <ul className="list-disc list-inside">
-          <li className={`${satisfiesLG ? "text-green-500" : "text-red-500"}`}>
-            At least 8 characters
-          </li>
-          <li className={`${satisfiesLC ? "text-green-500" : "text-red-500"}`}>
-            At least one lower case letter
-          </li>
-          <li className={`${satisfiesUP ? "text-green-500" : "text-red-500"}`}>
-            At least one upper case letter
-          </li>
-          <li className={`${satisfiesDI ? "text-green-500" : "text-red-500"}`}>
-            At least one digit
-          </li>
-          <li className={`${satisfiesSC ? "text-green-500" : "text-red-500"}`}>
-            At least one special character
-          </li>
-        </ul>
-      </div>
-      <div className="flex items-center gap-3 p-4 border-t mt-auto">
-        <button
-          className="px-6 py-2 text-white bg-blue-500 rounded-md outline-none ring-offset-2 ring-blue-400 focus:ring-2"
-          onClick={() => handleSubmit()}
-          disabled={!valid}
-        >
-          Save
-        </button>
-        {error.show && (
-          <div
-            className={`${error.type ? "text-green-500" : "text-red-500"} ml-5`}
-          >
-            <span className="">{error.message}</span>
-          </div>
+        <PasswordRequirements />
+        <input hidden={true} autoComplete="username" />
+        <label className="block text-md font-medium text-gray-200">
+          Old Password
+          <span className="text-red-500">*</span>
+        </label>
+        <input
+          value={oldPassword}
+          className="py-2 metrix_input"
+          placeholder="Old Password"
+          name="oldPassword"
+          onChange={handleChange}
+          autoComplete="current-password"
+          type="password"
+        />
+        <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+          New Password
+          <span className="text-red-500">*</span>
+        </label>
+        <input
+          value={newPassword}
+          className="py-2 metrix_input"
+          placeholder="New Password"
+          name="newPassword"
+          autoComplete="new-password"
+          onChange={handleChange}
+          type="password"
+        />
+        <label className="block text-md font-medium text-gray-200 dark:text-textDarkmode">
+          Repeat Password
+          <span className="text-red-500">*</span>
+        </label>
+        <input
+          value={confirmPassword}
+          className="py-2 metrix_input"
+          name="confirmPassword"
+          placeholder="Repeat Password"
+          autoComplete="new-password"
+          onChange={handleChange}
+          type="password"
+        />
+        {!isMatching && (
+          <p className="text-red-500 mb-6 col-span-3">
+            Passwords do not match!
+          </p>
         )}
-      </div>
+        <div className="flex flex-col mt-10 border-t">
+          <button
+            className="w-fit px-6 py-2 mt-4 text-white bg-blue-500 rounded-md outline-none disabled:bg-gray-500 ring-offset-2 ring-blue-400 focus:ring-2"
+            disabled={!isMatching || !isValid}
+            type="submit"
+          >
+            Save
+          </button>
+          <alert.AlertComponent className="block mt-3 w-fit border rounded-md mb-2 py-2 px-3" />
+        </div>
+      </form>
     </div>
   );
 }
