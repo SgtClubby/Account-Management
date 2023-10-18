@@ -4,7 +4,7 @@ import { EmailCheck } from "../../../../mongo/email";
 import { hash } from "bcrypt";
 import { randomBytes } from "crypto";
 import AccountManagementVerifyEmail from "./verifyEmail";
-import type { Body, User as UserType } from "../../types";
+import type { Body, UserBackend, User as UserType } from "../../types";
 import { Resend } from "resend";
 import { logger } from "lib/logger";
 
