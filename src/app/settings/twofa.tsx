@@ -13,9 +13,6 @@ export default function TwoFA({
   user: User;
   showTwoFactorModal: any;
 }) {
-  const [error, setError] = useState({ show: false, message: "", type: false });
-
-  async function handleSubmit() {}
   return (
     <div className="py-4 px-4 flex flex-col w-full rounded-md h-full">
       <div className="flex w-full h-full">
@@ -38,16 +35,6 @@ export default function TwoFA({
             </button>
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-3 p-4 mt-auto">
-        {error.show && (
-          <div
-            className={`${error.type ? "text-green-500" : "text-red-500"} ml-5`}
-          >
-            <span className="">{error.message}</span>
-          </div>
-        )}
       </div>
     </div>
   );
