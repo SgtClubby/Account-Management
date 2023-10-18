@@ -205,53 +205,34 @@ function AccountCard({ account, idx }: { account: Account; idx: number }) {
                     Hide
                   </button>
                 </div>
+
                 <div className="flex-col flex mt-5">
                   <h1 className="text-gray-200 text-lg mb-2">Fields:</h1>
-                  {decryptedFields.map((field: Field, idx: number) => {
-                    return (
-                      <div key={idx} className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-gray-300 text-md font-medium mb-1">
-                            {field.name}
-                            {field.name.endsWith(":") ? "" : ":"}
-                          </span>
-                          <span className="text-gray-300 text-sm mb-5">
-                            {field.value}
-                          </span>
+                  {decryptedFields.length != 0 ? (
+                    decryptedFields.map((field: Field, idx: number) => {
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-gray-300 text-md font-medium mb-1">
+                              {field.name}
+                              {field.name.endsWith(":") ? "" : ":"}
+                            </span>
+                            <span className="text-gray-300 text-sm mb-5">
+                              {field.value}
+                            </span>
+                          </div>
+                          <ContentCopyIcon
+                            className="text-gray-300 cursor-pointer ml-3"
+                            onClick={() => {
+                              navigator.clipboard.writeText(field.value);
+                            }}
+                          />
                         </div>
-                        <ContentCopyIcon
-                          className="text-gray-300 cursor-pointer ml-3"
-                          onClick={() => {
-                            navigator.clipboard.writeText(field.value);
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex-col flex mt-5">
-                  <h1 className="text-gray-200 text-lg mb-2">Fields:</h1>
-                  {decryptedFields.map((field: Field, idx: number) => {
-                    return (
-                      <div key={idx} className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <span className="text-gray-300 text-md font-medium mb-1">
-                            {field.name}
-                            {field.name.endsWith(":") ? "" : ":"}
-                          </span>
-                          <span className="text-gray-300 text-sm mb-5">
-                            {field.value}
-                          </span>
-                        </div>
-                        <ContentCopyIcon
-                          className="text-gray-300 cursor-pointer ml-3"
-                          onClick={() => {
-                            navigator.clipboard.writeText(field.value);
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    <p className="text-gray-200">No fields</p>
+                  )}
                 </div>
                 <div className="flex-col flex mt-5">
                   <h1 className="text-gray-200 text-lg mb-2">Files:</h1>
